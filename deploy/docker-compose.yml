@@ -1,0 +1,57 @@
+# @file docker-compose.yml
+# @brief Оркестрация SSH-сервера (базовая версия для DevOps)
+# @version 1.0.0
+ 
+x-common-settings: &common-settings
+  restart: unless-stopped
+  networks:
+    - ssh-network
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+ 
+services:
+  ssh-server:
+<<: *common-settings
+    build:
+      context: .
+      dockerfile: docker/ssh-server/Dockerfile
+      target: final
+      args:
+        SSH_PORT: ${SSH_PORT:-2222}
+    container_name: ssh-hardened-server
+    hostname: ssh-server
+    ports:
+      - "${SSH_PORT:-2222}:${SSH_PORT:-2222}"
+    volumes:
+      - ../config/sshd_config:/etc/ssh/sshd_config:ro
+      - ssh-keys:/etc/ssh/keys
+      - ./docker/ssh-server/scripts/entrypoint.sh:/entrypoint.sh:ro
+    environment:
+      - SSH_PORT=${SSH_PORT:-2222}
+      - MFA_ENABLED=${MFA_ENABLED:-false}
+      - TZ=Europe/Moscow
+    healthcheck:
+      test: ["CMD-SHELL", "sshd -t && (echo > /dev/tcp/localhost/${SSH_PORT}) || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+ 
+networks:
+  ssh-network:
+    driver: bridge
+ 
+volumes:
+  ssh-keys:
+    driver: local
