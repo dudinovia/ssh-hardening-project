@@ -1,7 +1,7 @@
 # @file docker-compose.yml
-# @brief Оркестрация SSH-сервера (базовая версия для DevOps)
+# @brief Оркестрация инфраструктуры защищённого SSH-сервера (БАЗОВАЯ ВЕРСИЯ)
 # @version 1.0.0
- 
+
 x-common-settings: &common-settings
   restart: unless-stopped
   networks:
@@ -11,10 +11,10 @@ x-common-settings: &common-settings
     options:
       max-size: "10m"
       max-file: "3"
- 
+
 services:
   ssh-server:
-<<: *common-settings
+    <<: *common-settings
     build:
       context: .
       dockerfile: docker/ssh-server/Dockerfile
@@ -47,11 +47,11 @@ services:
         reservations:
           cpus: '0.1'
           memory: 64M
- 
+
 networks:
   ssh-network:
     driver: bridge
- 
+
 volumes:
   ssh-keys:
     driver: local
