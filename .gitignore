@@ -1,0 +1,35 @@
+# Секреты и переменные окружения
+.env
+.env.production
+*.pem
+*.key
+*.pub
+certs/
+
+# Логи и временные файлы
+*.log
+logs/
+*.pid
+*.sock
+
+# Файлы IDE
+.idea/
+.vscode/
+*.swp
+*~
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# LaTeX/Report
+thesis/sources/report/*.pdf
+thesis/sources/slides/*.pdf
+*.aux
+*.toc
+
+# Архивы
+*.zip
+*.tar.gz
