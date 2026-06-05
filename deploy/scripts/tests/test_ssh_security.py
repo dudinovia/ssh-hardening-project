@@ -3,7 +3,7 @@
 """
 @file test_ssh_security.py
 @brief Автоматические тесты безопасности для hardened SSH-сервера
-@author [Твоё ФИО] (your.email@university.com)
+@author [Бессараб Григорий Олегович] (bessarab@sfedu.ru)
 @date 2026-05-28
 @version 1.0.0
 @license MIT
