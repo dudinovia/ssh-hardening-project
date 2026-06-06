@@ -67,3 +67,10 @@ docker compose up -d --build
 
 # 4. Проверить статус
 docker compose ps
+```
+
+Для тестов:
+```
+pip install -r requirements.txt
+pytest test_ssh_security.py -v
+```
