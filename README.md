@@ -71,6 +71,11 @@ docker compose ps
 
 Для тестов:
 ```
-pip install -r requirements.txt
-pytest test_ssh_security.py -v
+sudo apt install python3-pytest
+sudo apt install python3-paramiko
+
+chmod +x deploy/scripts/bootstrap.sh
+sudo ./deploy/scripts/bootstrap.sh
+
+pytest tests/test_ssh_security.py -v
 ```
