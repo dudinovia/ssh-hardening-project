@@ -10,7 +10,10 @@ Protocol 2
 
 PasswordAuthentication no
 PermitEmptyPasswords no
-ChallengeResponseAuthentication no
+ChallengeResponseAuthentication yes
+KbdInteractiveAuthentication yes
+UsePAM yes
+AuthenticationMethods publickey,keyboard-interactive
 PubkeyAuthentication yes
 AuthorizedKeysFile .ssh/authorized_keys
 

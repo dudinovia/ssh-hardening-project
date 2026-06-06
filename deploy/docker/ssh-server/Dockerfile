@@ -51,6 +51,10 @@ RUN chmod 600 /etc/ssh/sshd_config && \
     chown -R appuser:appgroup /home/appuser/.ssh && \
     chmod 700 /home/appuser/.ssh
 
+RUN sed -i 's/@include common-auth/#@include common-auth/g' /etc/pam.d/sshd && \
+    echo "auth required pam_google_authenticator.so" >> /etc/pam.d/sshd && \
+    echo "auth required pam_deny.so" >> /etc/pam.d/sshd
+
 COPY docker/ssh-server/scripts/entrypoint.sh /entrypoint.sh
 RUN dos2unix /entrypoint.sh && chmod +x /entrypoint.sh
 

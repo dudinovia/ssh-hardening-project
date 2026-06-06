@@ -46,6 +46,18 @@ main() {
         log "WARN: Файл sysctl.conf не найден, пропускаем."
     fi
 
+    # 2.5 Генерация тестовых ключей для доступа
+    log "Проверка/генерация тестовых клиентских SSH-ключей..."
+    local ssh_keys_dir="${project_root}/deploy/ssh-keys"
+    mkdir -p "${ssh_keys_dir}"
+    if [[ ! -f "${ssh_keys_dir}/test_client_key" ]]; then
+        ssh-keygen -t ed25519 -f "${ssh_keys_dir}/test_client_key" -N "" -q
+        log "Ключи сгенерированы в ${ssh_keys_dir}"
+        # Даем права чтобы пользователь тоже мог их читать (так как скрипт от root)
+        chmod 644 "${ssh_keys_dir}/test_client_key.pub"
+        chmod 644 "${ssh_keys_dir}/test_client_key" 2>/dev/null || true
+    fi
+
     # 3. Запуск контейнеров
     log "Переход к запуску Docker Compose..."
     cd "${project_root}/deploy" || error "Не удалось найти папку deploy"

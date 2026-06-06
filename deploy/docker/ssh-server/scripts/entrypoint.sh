@@ -46,10 +46,27 @@ BANNER
 
     # Фиксация прав (требование OpenSSH)
     local ssh_dir="/home/appuser/.ssh"
+    if [[ ! -d "${ssh_dir}" ]]; then
+        mkdir -p "${ssh_dir}"
+        chown appuser:appgroup "${ssh_dir}"
+    fi
+
+    # Импорт публичного ключа из смонтированного тома (если он есть)
+    if [[ -f "/etc/ssh/keys/test_client_key.pub" ]]; then
+        cat /etc/ssh/keys/test_client_key.pub > "${ssh_dir}/authorized_keys"
+    fi
+
     if [[ -d "${ssh_dir}" ]]; then
         chmod 700 "${ssh_dir}"
         chmod 600 "${ssh_dir}/authorized_keys" 2>/dev/null || true
         chown -R appuser:appgroup "${ssh_dir}"
+    fi
+
+    # Генерация MFA секрета для appuser, если его еще нет
+    if [[ ! -f "/home/appuser/.google_authenticator" ]]; then
+        log "Генерация Google Authenticator секрета для appuser..."
+        su - appuser -c "google-authenticator -t -d -f -r 3 -R 30 -W -q"
+        log "Секрет сгенерирован! Проверьте файл /home/appuser/.google_authenticator или логи выше (QR-код)."
     fi
 
     log "Инициализация завершена. Передача управления sshd..."
