@@ -15,9 +15,9 @@
 
 | Роль | ФИО | GitHub | Зона ответственности |
 |------|-----|--------|----------------------|
-| **DevOps / IaC Engineer** | [Твоё ФИО] | @yourusername | Архитектура репозитория, Dockerfile, Compose, bootstrap.sh, sysctl, CI/CD |
-| **System Administrator / SRE** | [ФИО коллеги 1] | @colleague1 | Настройка сервисов, healthcheck, тесты, отказоустойчивость, UFW |
-| **Observability & Security Engineer** | [ФИО коллеги 2] | @colleague2 | Мониторинг (Prometheus/Grafana), линтеры, MFA, документация, отчёт по ГОСТ |
+| **DevOps / IaC Engineer** | Дудинов Илья Александрович | @dudinovia | Архитектура репозитория, Dockerfile, Compose, bootstrap.sh, sysctl, CI/CD |
+| **System Administrator / SRE** | Жертовская Алена Игоревна | @AlenaZhertovskaya | Настройка сервисов, healthcheck, тесты, отказоустойчивость, UFW |
+| **Observability & Security Engineer** | Бессараб Григорий Олегович | @griwascooter | Мониторинг (Prometheus/Grafana), линтеры, MFA, документация, отчёт по ГОСТ |
 
 
 ## Описание проекта
