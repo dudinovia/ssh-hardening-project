@@ -21,6 +21,10 @@ RUN apt-get update && \
         nano \
         htop \
         net-tools \
+        ca-certificates \
+        apt-transport-https \
+        netcat-openbsd \
+        dos2unix \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /run/sshd
 
@@ -47,8 +51,8 @@ RUN chmod 600 /etc/ssh/sshd_config && \
     chown -R appuser:appgroup /home/appuser/.ssh && \
     chmod 700 /home/appuser/.ssh
 
-#COPY docker/ssh-server/scripts/entrypoint.sh /entrypoint.sh
-#RUN chmod +x /entrypoint.sh
+COPY docker/ssh-server/scripts/entrypoint.sh /entrypoint.sh
+RUN dos2unix /entrypoint.sh && chmod +x /entrypoint.sh
 
 EXPOSE ${SSH_PORT}
 

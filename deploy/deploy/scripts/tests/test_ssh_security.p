@@ -9,10 +9,10 @@
 @license MIT
 
 Steps:
-    1. Проверка доступности порта SSH
-    2. Валидация отклонения аутентификации по паролю
-    3. Валидация запрета входа под root
-    4. Проверка успешной аутентификации по открытому ключу
+    1. Подключение к SSH-серверу с некорректными параметрами
+    2. Проверка отклонения аутентификации по паролю
+    3. Проверка отклонения входа под root
+    4. (Опционально) Проверка успешного входа по ключу
 """
 
 import paramiko
@@ -24,7 +24,7 @@ from typing import Optional
 
 
 # ==============================================================================
-# КОНФИГУРАЦИЯ (загружается из окружения или использует значения по умолчанию)
+# КОНФИГУРАЦИЯ ТЕСТОВ (загружается из окружения)
 # ==============================================================================
 SSH_HOST = os.getenv("SSH_HOST", "localhost")
 SSH_PORT = int(os.getenv("SSH_PORT", "2222"))
@@ -35,37 +35,38 @@ SSH_TIMEOUT = int(os.getenv("SSH_TIMEOUT", "10"))
 
 def wait_for_ssh(host: str, port: int, timeout: int = 30) -> bool:
     """
-    Ожидает открытия TCP-порта SSH.
+    Ожидает доступности SSH-порта.
 
     Args:
-        host: Целевой хост
-        port: Целевой порт
+        host: Хост для подключения
+        port: Порт SSH
         timeout: Максимальное время ожидания в секундах
 
     Returns:
-        True если порт доступен, False при таймауте
+        True если порт доступен, False если таймаут
     """
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
             with socket.create_connection((host, port), timeout=2):
                 return True
-        except (socket.timeout, ConnectionRefusedError, OSError):
+        except (socket.timeout, ConnectionRefusedError):
             time.sleep(1)
     return False
 
 
 def test_password_auth_rejected() -> bool:
     """
-    Проверяет, что сервер отклоняет попытку входа по паролю.
+    Проверяет, что аутентификация по паролю отклоняется.
 
     Returns:
-        True если аутентификация отклонена (ожидаемое поведение)
+        True если пароль отклонён (ожидаемое поведение), False иначе
     """
     print(f"[TEST] Проверка отклонения аутентификации по паролю...")
+    
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
+    
     try:
         client.connect(
             hostname=SSH_HOST,
@@ -77,14 +78,14 @@ def test_password_auth_rejected() -> bool:
             look_for_keys=False,
             banner_timeout=5
         )
-        print("[FAIL] Пароль был принят! Это критическая уязвимость.")
+        print("[FAIL] Пароль был принят! Это уязвимость!")
         return False
     except paramiko.AuthenticationException:
-        print("[PASS] Пароль корректно отклонён (AuthenticationException)")
+        print("[PASS] Пароль корректно отклонён")
         return True
     except Exception as e:
-        # Разрыв соединения или другая ошибка тоже считается "защита сработала"
-        print(f"[PASS] Соединение разорвано/отклонено: {type(e).__name__}")
+        print(f"[WARN] Неожиданная ошибка: {type(e).__name__}: {e}")
+        # Если соединение сбрасывается — это тоже "защита сработала"
         return True
     finally:
         client.close()
@@ -92,15 +93,16 @@ def test_password_auth_rejected() -> bool:
 
 def test_root_login_rejected() -> bool:
     """
-    Проверяет, что прямой вход под root запрещён.
+    Проверяет, что вход под root запрещён.
 
     Returns:
-        True если вход под root отклонён
+        True если root-логин отклонён, False иначе
     """
     print(f"[TEST] Проверка запрета входа под root...")
+    
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
+    
     try:
         client.connect(
             hostname=SSH_HOST,
@@ -111,13 +113,13 @@ def test_root_login_rejected() -> bool:
             allow_agent=False,
             look_for_keys=False
         )
-        print("[FAIL] Вход под root разрешён! Критическая уязвимость.")
+        print("[FAIL] Вход под root разрешён! Критическая уязвимость!")
         return False
     except paramiko.AuthenticationException:
         print("[PASS] Вход под root корректно отклонён")
         return True
     except Exception as e:
-        print(f"[PASS] Соединение с root разорвано: {type(e).__name__}")
+        print(f"[WARN] Ошибка при проверке root: {type(e).__name__}: {e}")
         return True
     finally:
         client.close()
@@ -125,19 +127,20 @@ def test_root_login_rejected() -> bool:
 
 def test_key_auth_works() -> bool:
     """
-    Проверяет, что аутентификация по SSH-ключу работает корректно.
+    Проверяет, что аутентификация по ключу работает (если ключ предоставлен).
 
     Returns:
-        True если ключ принят и сессия установлена
+        True если ключ принят, False если ошибка или ключ не найден
     """
     if not os.path.exists(SSH_KEY_PATH):
-        print(f"[SKIP] Приватный ключ не найден: {SSH_KEY_PATH}")
-        return True  # Не считаем это провалом инфраструктурного теста
-
+        print(f"[SKIP] Ключ не найден: {SSH_KEY_PATH}")
+        return True  # Не считаем это провалом теста
+    
     print(f"[TEST] Проверка аутентификации по ключу...")
+    
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
+    
     try:
         client.connect(
             hostname=SSH_HOST,
@@ -149,15 +152,16 @@ def test_key_auth_works() -> bool:
             allow_agent=False,
             look_for_keys=False
         )
+        # Выполним простую команду для проверки сессии
         stdin, stdout, stderr = client.exec_command("whoami", timeout=5)
         result = stdout.read().decode().strip()
         client.close()
-
+        
         if result == SSH_USER:
-            print(f"[PASS] Ключ принят, активный пользователь: {result}")
+            print(f"[PASS] Ключ принят, пользователь: {result}")
             return True
         else:
-            print(f"[FAIL] Неожиданный пользователь в сессии: {result}")
+            print(f"[FAIL] Неожиданный пользователь: {result}")
             return False
     except Exception as e:
         print(f"[FAIL] Ошибка аутентификации по ключу: {type(e).__name__}: {e}")
@@ -166,43 +170,48 @@ def test_key_auth_works() -> bool:
 
 def run_all_tests() -> int:
     """
-    Запускает полный набор тестов безопасности и возвращает код выхода.
+    Запускает все тесты безопасности и возвращает код выхода.
 
     Returns:
-        0 если все тесты пройдены, 1 если есть падения
+        0 если все тесты пройдены, 1 если есть провалы
     """
     print(f"\n{'='*60}")
-    print(f"🔐 SSH Security Validation Suite")
+    print(f"🔐 SSH Security Tests")
     print(f"{'='*60}")
     print(f"Target: {SSH_HOST}:{SSH_PORT}")
     print(f"User: {SSH_USER}")
     print(f"Key: {SSH_KEY_PATH}")
     print(f"{'='*60}\n")
-
+    
+    # Ждём доступности SSH
     if not wait_for_ssh(SSH_HOST, SSH_PORT):
-        print(f"[ERROR] Порт {SSH_PORT} на {SSH_HOST} не отвечает. Проверьте docker compose ps")
+        print(f"[ERROR] SSH-порт {SSH_PORT} не доступен на {SSH_HOST}")
         return 1
-
-    print("[INFO] Порт доступен. Запуск тестов...\n")
-
+    
+    print(f"[INFO] SSH-порт доступен, начинаем тесты...\n")
+    
     results = []
+    
+    # Запускаем тесты
     results.append(("Password Auth Rejected", test_password_auth_rejected()))
     results.append(("Root Login Rejected", test_root_login_rejected()))
     results.append(("Key Auth Works", test_key_auth_works()))
-
+    
+    # Вывод результатов
     print(f"\n{'='*60}")
-    print("📊 Результаты:")
+    print(f"📊 Результаты тестов:")
     print(f"{'='*60}")
-
+    
     passed = 0
     for name, result in results:
         status = "✅ PASS" if result else "❌ FAIL"
         print(f"{status} | {name}")
         if result:
             passed += 1
-
+    
     print(f"{'='*60}")
     print(f"Итого: {passed}/{len(results)} тестов пройдено")
+    
     return 0 if passed == len(results) else 1
 
 

@@ -1,0 +1,7 @@
+Requirement already satisfied: paramiko in /home/george/anaconda3/envs/ssh-tests/lib/python3.11/site-packages (5.0.0)
+Requirement already satisfied: bcrypt>=3.2 in /home/george/anaconda3/envs/ssh-tests/lib/python3.11/site-packages (from paramiko) (5.0.0)
+Requirement already satisfied: cryptography>=3.3 in /home/george/anaconda3/envs/ssh-tests/lib/python3.11/site-packages (from paramiko) (48.0.0)
+Requirement already satisfied: invoke>=2.0 in /home/george/anaconda3/envs/ssh-tests/lib/python3.11/site-packages (from paramiko) (3.0.3)
+Requirement already satisfied: pynacl>=1.5 in /home/george/anaconda3/envs/ssh-tests/lib/python3.11/site-packages (from paramiko) (1.6.2)
+Requirement already satisfied: cffi>=2.0.0 in /home/george/anaconda3/envs/ssh-tests/lib/python3.11/site-packages (from cryptography>=3.3->paramiko) (2.0.0)
+Requirement already satisfied: pycparser in /home/george/anaconda3/envs/ssh-tests/lib/python3.11/site-packages (from cffi>=2.0.0->cryptography>=3.3->paramiko) (3.0)
