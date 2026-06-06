@@ -54,7 +54,7 @@
 
 ```bash
 # 1. Клонировать репозиторий
-git clone <your-repo-url>
+git clone https://github.com/dudinovia/ssh-hardening-project.git
 cd ssh-hardening-project
 
 # 2. Создать файл переменных окружения
